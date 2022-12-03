@@ -28,8 +28,12 @@ const newCommand = async () => {
             process.exit();
         case 'cd':
             const newDirectory = path.resolve(currentDirectory, command.trim().split(' ')[1]);
-            result = await execPromise(`cd ${newDirectory}`);
-            currentDirectory = newDirectory;
+            try {
+                await execPromise(`cd ${newDirectory}`);
+                currentDirectory = newDirectory;
+            } catch (e) {
+                console.log(e);
+            }
             break;
         default:
             result = await execPromise(command);
