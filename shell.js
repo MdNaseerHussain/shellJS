@@ -1,13 +1,14 @@
 const readline = require('readline-sync');
-const path = require('path');
+const path = require('path-posix');
 const os = require('os');
-const { exec } = require('child_process');
+const { exec, fork } = require('child_process');
+const convertPath = require( '@stdlib/utils-convert-path' );
 
-currentDirectory = os.homedir();
+let currentDirectory = convertPath(os.homedir(), 'posix');
 
 const execPromise = async (command) => {
     return new Promise((resolve, reject) => {
-        exec(`cd ${currentDirectory}; ${command}`, {shell: 'powershell'}, (error, stdout, stderr) => {
+        const child = exec(`cd ${currentDirectory}; ${command}`, {shell: 'bash'}, (error, stdout, stderr) => {
             if (error) {
                 reject(`error: ${error.message}`);
             } else if (stderr) {
@@ -15,6 +16,10 @@ const execPromise = async (command) => {
             } else {
                 resolve(`${stdout}`);
             }
+        });
+        process.on('SIGINT', () => {
+            console.log('Keyboard interrupt');
+            child.kill();
         });
     });
 }
@@ -27,7 +32,7 @@ const newCommand = async () => {
         case 'exit':
             process.exit();
         case 'cd':
-            const newDirectory = path.resolve(currentDirectory, command.trim().split(' ')[1]);
+            let newDirectory = path.resolve(currentDirectory, command.trim().split(' ')[1]);
             try {
                 await execPromise(`cd ${newDirectory}`);
                 currentDirectory = newDirectory;
@@ -36,8 +41,12 @@ const newCommand = async () => {
             }
             break;
         default:
-            result = await execPromise(command);
-            console.log(result);
+            try {
+                result = await execPromise(command);
+                console.log(result);
+            } catch (e) {
+                console.log(e);
+            }
     }
 };
 

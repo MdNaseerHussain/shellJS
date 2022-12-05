@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@stdlib/utils-convert-path": "^0.0.8",
+    "path-posix": "^1.0.0",
     "readline-sync": "^1.4.10"
   }
 }
